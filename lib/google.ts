@@ -23,8 +23,20 @@ function normalizePrivateKey(raw: string): string {
   ) {
     key = key.slice(1, -1);
   }
-  // 字面 \n 還原成真正的換行；順便處理可能的 \r\n 轉義
-  key = key.replace(/\\r\\n/g, "\n").replace(/\\n/g, "\n");
+  // 字面 \n / \r\n 還原成真正的換行
+  key = key.replace(/\\r\\n/g, "\n").replace(/\\r/g, "\n").replace(/\\n/g, "\n");
+
+  // 不論換行如何被破壞，一律由 BEGIN/END 之間的內容重建標準 PEM（每 64 字一行）
+  const match = key.match(
+    /-----BEGIN ([A-Z ]+)-----([\s\S]*?)-----END \1-----/,
+  );
+  if (match) {
+    const label = match[1].trim();
+    const body = match[2].replace(/[^A-Za-z0-9+/=]/g, ""); // 只留 base64 字元
+    const wrapped = body.match(/.{1,64}/g)?.join("\n") ?? body;
+    key = `-----BEGIN ${label}-----\n${wrapped}\n-----END ${label}-----\n`;
+  }
+
   return key;
 }
 
