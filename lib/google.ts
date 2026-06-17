@@ -40,22 +40,36 @@ function normalizePrivateKey(raw: string): string {
   return key;
 }
 
+const SCOPES = [
+  "https://www.googleapis.com/auth/spreadsheets",
+  "https://www.googleapis.com/auth/calendar.events",
+];
+
 function getServiceAccountAuth() {
+  // 優先：整份金鑰 JSON 以 base64 存放（最防呆，無換行問題）
+  const b64 = process.env.GOOGLE_SERVICE_ACCOUNT_JSON_BASE64;
+  if (b64 && b64.trim()) {
+    const json = JSON.parse(Buffer.from(b64.trim(), "base64").toString("utf-8"));
+    return new google.auth.JWT({
+      email: json.client_email,
+      key: json.private_key, // JSON 解析後已是正確含換行的 PEM
+      scopes: SCOPES,
+    });
+  }
+
+  // 備用：分開的 email + private key 環境變數
   const email = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
   const rawKey = process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY;
   if (!email || !rawKey) {
     throw new Error(
-      "尚未設定服務帳號（GOOGLE_SERVICE_ACCOUNT_EMAIL / GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY）",
+      "尚未設定服務帳號（GOOGLE_SERVICE_ACCOUNT_JSON_BASE64，或 GOOGLE_SERVICE_ACCOUNT_EMAIL / GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY）",
     );
   }
 
   return new google.auth.JWT({
     email: email.trim(),
     key: normalizePrivateKey(rawKey),
-    scopes: [
-      "https://www.googleapis.com/auth/spreadsheets",
-      "https://www.googleapis.com/auth/calendar.events",
-    ],
+    scopes: SCOPES,
   });
 }
 
