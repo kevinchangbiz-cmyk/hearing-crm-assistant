@@ -14,6 +14,20 @@ const SHEET_HEADER = [
  * 所有 Sheet 寫入與日曆建立都由這個系統帳號統一處理，
  * 因此使用者本身不需被分享 Sheet / 日曆，只要該資源分享給服務帳號即可。
  */
+function normalizePrivateKey(raw: string): string {
+  let key = raw.trim();
+  // 去掉可能誤帶的外層引號（單/雙引號）
+  if (
+    (key.startsWith('"') && key.endsWith('"')) ||
+    (key.startsWith("'") && key.endsWith("'"))
+  ) {
+    key = key.slice(1, -1);
+  }
+  // 字面 \n 還原成真正的換行；順便處理可能的 \r\n 轉義
+  key = key.replace(/\\r\\n/g, "\n").replace(/\\n/g, "\n");
+  return key;
+}
+
 function getServiceAccountAuth() {
   const email = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
   const rawKey = process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY;
@@ -24,9 +38,8 @@ function getServiceAccountAuth() {
   }
 
   return new google.auth.JWT({
-    email,
-    // .env 內的換行會被存成字面 \n，這裡還原成真正的換行
-    key: rawKey.replace(/\\n/g, "\n"),
+    email: email.trim(),
+    key: normalizePrivateKey(rawKey),
     scopes: [
       "https://www.googleapis.com/auth/spreadsheets",
       "https://www.googleapis.com/auth/calendar.events",
