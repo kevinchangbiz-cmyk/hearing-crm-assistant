@@ -1,0 +1,20 @@
+{
+  "stores": [
+    {
+      "id": "yuanlin",
+      "name": "員林店",
+      "googleSheetId": "請填入該店 Google Sheet 的 ID",
+      "googleCalendarId": "primary"
+    },
+    {
+      "id": "changhua-zhonghua",
+      "name": "彰化中華店",
+      "googleSheetId": "請填入該店 Google Sheet 的 ID",
+      "googleCalendarId": "primary"
+    }
+  ],
+  "permissions": [
+    { "email": "xiaok@example.com", "storeIds": ["yuanlin", "changhua-zhonghua"] },
+    { "email": "aming@example.com", "storeIds": ["changhua-zhonghua"] }
+  ]
+}

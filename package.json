@@ -1,0 +1,31 @@
+{
+  "name": "hearing-crm-assistant",
+  "version": "1.0.0",
+  "private": true,
+  "description": "助聽器門市驗配師專用服務紀錄助手 — 語音輸入 → AI 整理 CRM → 一鍵複製 → Google Sheet 備份 → Calendar 提醒。",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.21.0",
+    "googleapis": "^144.0.0",
+    "next": "14.2",
+    "next-auth": "^4.24.8",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "eslint": "^8.57.0",
+    "eslint-config-next": "14.2",
+    "typescript": "^5.5.4"
+  },
+  "engines": {
+    "node": ">=18.18.0"
+  }
+}
