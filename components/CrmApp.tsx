@@ -326,9 +326,13 @@ export default function CrmApp() {
       {crm && (
         <div className="card stack">
           <p className="section-title" style={{ margin: 0 }}>
-            CRM 結果
+            CRM 結果（可直接編輯）
           </p>
-          <div className="crm-output">{crm}</div>
+          <textarea
+            className="crm-edit"
+            value={crm}
+            onChange={(e) => setCrm(e.target.value)}
+          />
 
           <div>
             <label className="field-label">服務日期／時間（補登可改）</label>
@@ -359,11 +363,12 @@ export default function CrmApp() {
             </button>
           </div>
 
-          {savedToSheet && (
-            <button className="btn btn-primary btn-block" onClick={startNext}>
-              ＋ 下一筆
-            </button>
-          )}
+          <button
+            className={`btn btn-block ${savedToSheet ? "btn-primary" : "btn-ghost"}`}
+            onClick={startNext}
+          >
+            {savedToSheet ? "＋ 下一筆" : "清除重來"}
+          </button>
         </div>
       )}
 

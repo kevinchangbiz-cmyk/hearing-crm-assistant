@@ -205,6 +205,23 @@ textarea:focus {
   min-height: 56px;
 }
 
+/* 可編輯的 CRM 結果框 */
+.crm-edit {
+  width: 100%;
+  white-space: pre-wrap;
+  word-break: break-word;
+  background: #f8fafc;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  padding: 11px;
+  font-size: 15px;
+  min-height: 150px;
+  resize: vertical;
+  line-height: 1.5;
+  font-family: inherit;
+  color: var(--text);
+}
+
 .row {
   display: flex;
   gap: 10px;
