@@ -114,6 +114,65 @@ export function suggestReminderDate(reminderText: string): string {
     }
   }
 
+  // 相對日：今天 / 明天 / 後天 / 大後天（口語常見，優先於 +X天 與預設）
+  {
+    const startOfToday = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate(),
+    );
+    let offset: number | null = null;
+    if (/大後天|大后天/.test(text)) offset = 3;
+    else if (/後天|后天/.test(text)) offset = 2;
+    else if (/明天|明日|隔天|翌日/.test(text)) offset = 1;
+    else if (/今天|今日|當天|本日/.test(text)) offset = 0;
+    if (offset !== null) {
+      const d = new Date(startOfToday);
+      d.setDate(d.getDate() + offset);
+      return toDateString(d);
+    }
+  }
+
+  // 星期幾：這週五 / 本週三 / 下週一 / 下個禮拜二 / 下下週四 / 單講「週五」
+  const weekdayMatch = text.match(
+    /(這|本|下下|下個|下)?\s*(?:週|周|星期|禮拜|拜)\s*([一二三四五六日天])/,
+  );
+  if (weekdayMatch) {
+    const isoMap: Record<string, number> = {
+      一: 1, 二: 2, 三: 3, 四: 4, 五: 5, 六: 6, 日: 7, 天: 7,
+    };
+    const isoTarget = isoMap[weekdayMatch[2]];
+    if (isoTarget) {
+      const prefix = weekdayMatch[1];
+      const dow = today.getDay(); // 0=週日..6=週六
+      const isoDow = dow === 0 ? 7 : dow; // 轉成 週一=1..週日=7
+      const startOfToday = new Date(
+        today.getFullYear(),
+        today.getMonth(),
+        today.getDate(),
+      );
+      const mondayThisWeek = new Date(startOfToday);
+      mondayThisWeek.setDate(mondayThisWeek.getDate() - (isoDow - 1));
+
+      let weekShift: number;
+      if (prefix === "下下") weekShift = 2;
+      else if (prefix === "下" || prefix === "下個") weekShift = 1;
+      else if (prefix === "這" || prefix === "本") weekShift = 0;
+      else weekShift = -1; // 單講「週五」→ 最近一次（含本週，若已過則下週）
+
+      const d = new Date(mondayThisWeek);
+      if (weekShift >= 0) {
+        d.setDate(d.getDate() + weekShift * 7 + (isoTarget - 1));
+      } else {
+        d.setDate(d.getDate() + (isoTarget - 1));
+        if (d.getTime() <= startOfToday.getTime()) {
+          d.setDate(d.getDate() + 7);
+        }
+      }
+      return toDateString(d);
+    }
+  }
+
   const monthMatch = text.match(/([一二兩三四五六七八九十\d]+)\s*個月/);
   if (monthMatch) {
     const months = parseChineseNumber(monthMatch[1]);
