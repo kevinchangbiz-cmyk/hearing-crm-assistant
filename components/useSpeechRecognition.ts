@@ -36,16 +36,31 @@ export function useSpeechRecognition() {
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
   // 透過 callback 把最終結果回拋給呼叫端，避免狀態競爭
   const onFinalRef = useRef<((text: string) => void) | null>(null);
-  const manualStopRef = useRef(false);
+  // 使用者「想不想」持續聆聽（true 時即使引擎自己結束也要自動接回）
+  const shouldListenRef = useRef(false);
+  const restartTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     setSupported(getRecognitionCtor() !== null);
   }, []);
 
+  const clearRestartTimer = () => {
+    if (restartTimerRef.current !== null) {
+      clearTimeout(restartTimerRef.current);
+      restartTimerRef.current = null;
+    }
+  };
+
   const stop = useCallback(() => {
-    manualStopRef.current = true;
-    recognitionRef.current?.stop();
+    shouldListenRef.current = false;
+    clearRestartTimer();
+    try {
+      recognitionRef.current?.stop();
+    } catch {
+      /* ignore */
+    }
     setListening(false);
+    setInterim("");
   }, []);
 
   const start = useCallback((onFinal: (text: string) => void) => {
@@ -58,63 +73,77 @@ export function useSpeechRecognition() {
     setError(null);
     setInterim("");
     onFinalRef.current = onFinal;
-    manualStopRef.current = false;
+    shouldListenRef.current = true;
 
-    const recognition = new Ctor();
-    recognition.lang = "zh-TW";
-    recognition.continuous = true;
-    recognition.interimResults = true;
+    // 每次（重）啟動都建立全新的辨識物件，避免重用同一物件導致啟動失敗
+    const launch = () => {
+      if (!shouldListenRef.current) return;
+      clearRestartTimer();
 
-    recognition.onresult = (event: any) => {
-      let interimText = "";
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        const result = event.results[i];
-        const transcript = result[0].transcript;
-        if (result.isFinal) {
-          onFinalRef.current?.(transcript);
-        } else {
-          interimText += transcript;
+      const recognition = new Ctor();
+      recognition.lang = "zh-TW";
+      recognition.continuous = true;
+      recognition.interimResults = true;
+
+      recognition.onresult = (event: any) => {
+        let interimText = "";
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const result = event.results[i];
+          const transcript = result[0].transcript;
+          if (result.isFinal) {
+            onFinalRef.current?.(transcript);
+          } else {
+            interimText += transcript;
+          }
         }
-      }
-      setInterim(interimText);
-    };
+        setInterim(interimText);
+      };
 
-    recognition.onerror = (event: any) => {
-      if (event?.error === "no-speech" || event?.error === "aborted") return;
-      if (event?.error === "not-allowed") {
-        setError("麥克風權限被拒，請允許麥克風後再試。");
-      } else {
-        setError(`語音辨識發生錯誤：${event?.error ?? "未知"}`);
-      }
-    };
-
-    recognition.onend = () => {
-      setInterim("");
-      // continuous 模式下若非手動停止，自動續錄（手機常會自動中斷）
-      if (!manualStopRef.current) {
-        try {
-          recognition.start();
+      recognition.onerror = (event: any) => {
+        const err = event?.error;
+        // 權限類錯誤是致命的：停止並提示
+        if (err === "not-allowed" || err === "service-not-allowed") {
+          shouldListenRef.current = false;
+          setError("麥克風權限被拒，請允許麥克風後再試。");
+          setListening(false);
           return;
-        } catch {
-          /* ignore */
         }
+        // 其它（no-speech / aborted / network / audio-capture）為暫時性，
+        // 交給 onend 自動重啟，不打擾使用者。
+      };
+
+      recognition.onend = () => {
+        setInterim("");
+        if (shouldListenRef.current) {
+          // 引擎自己結束（靜音/逾時）時，稍後用新物件接回去
+          restartTimerRef.current = window.setTimeout(launch, 250);
+        } else {
+          setListening(false);
+        }
+      };
+
+      recognitionRef.current = recognition;
+      try {
+        recognition.start();
+        setListening(true);
+      } catch {
+        // 引擎可能尚未釋放，稍後重試一次
+        restartTimerRef.current = window.setTimeout(launch, 350);
       }
-      setListening(false);
     };
 
-    recognitionRef.current = recognition;
-    try {
-      recognition.start();
-      setListening(true);
-    } catch {
-      setError("無法啟動語音辨識，請重試。");
-    }
+    launch();
   }, []);
 
   useEffect(() => {
     return () => {
-      manualStopRef.current = true;
-      recognitionRef.current?.abort();
+      shouldListenRef.current = false;
+      clearRestartTimer();
+      try {
+        recognitionRef.current?.abort();
+      } catch {
+        /* ignore */
+      }
     };
   }, []);
 
