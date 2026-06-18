@@ -355,7 +355,7 @@ export default function CrmApp() {
               onClick={handleSave}
               disabled={saving || savedToSheet}
             >
-              {savedToSheet ? "已備份" : saving ? "備份中…" : "備份"}
+              {savedToSheet ? "已同步" : saving ? "同步中…" : "同步到日曆"}
             </button>
           </div>
 
@@ -420,7 +420,7 @@ export default function CrmApp() {
                 onClick={handleCreateReminder}
                 disabled={creatingEvent}
               >
-                {creatingEvent ? "建立中…" : "確認建立提醒"}
+                {creatingEvent ? "建立中…" : "將預約加入日曆"}
               </button>
             </div>
           </div>
