@@ -295,13 +295,13 @@ export default function CrmApp() {
             onClick={toggleRecord}
             type="button"
           >
-            {speech.listening ? "停止錄音" : "按住說話"}
+            {speech.listening ? "停止錄音" : "開始錄音"}
           </button>
           <span className="hint">
             {speech.listening
-              ? "聆聽中…可隨時停止後修改"
+              ? "聆聽中…再點一下「停止錄音」結束"
               : speech.supported
-                ? "可語音或直接打字"
+                ? "點一下開始錄音，或直接打字"
                 : "不支援語音，請打字"}
           </span>
         </div>
