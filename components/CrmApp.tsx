@@ -19,6 +19,7 @@ const MODEL_GROUPS: { label: string; items: string[] }[] = [
     label: "型號",
     items: ["M-Core", "BiCore", "Reach", "reCharge", "M3", "M5", "M7"],
   },
+  { label: "等級", items: ["40", "60", "80", "220", "330", "440", "10", "30"] },
 ];
 
 function todayString(): string {
