@@ -222,6 +222,58 @@ textarea:focus {
   color: var(--text);
 }
 
+/* 型號快選 */
+.model-pick {
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: #fff;
+  padding: 6px 10px;
+}
+.model-pick > summary {
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--muted, #64748b);
+  user-select: none;
+  list-style: revert;
+}
+.model-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+.model-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.model-group-label {
+  font-size: 12px;
+  color: var(--muted, #64748b);
+}
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.chip {
+  border: 1px solid var(--border);
+  background: #f8fafc;
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: 14px;
+  color: var(--text);
+  cursor: pointer;
+  font-family: inherit;
+}
+.chip:hover {
+  border-color: var(--primary);
+  background: #eff4ff;
+}
+.chip:active {
+  transform: translateY(1px);
+}
+
 .row {
   display: flex;
   gap: 10px;

@@ -12,6 +12,15 @@ import {
 
 type StoreOption = { id: string; name: string };
 
+// 型號快選：英文型號用「點」的，避免語音聽錯（清單可隨時增修）
+const MODEL_GROUPS: { label: string; items: string[] }[] = [
+  { label: "品牌", items: ["Rexton", "Coselgi", "Widex"] },
+  {
+    label: "型號",
+    items: ["M-Core", "BiCore", "Reach", "reCharge", "M3", "M5", "M7"],
+  },
+];
+
 function todayString(): string {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
@@ -90,6 +99,14 @@ export default function CrmApp() {
         setRawText((prev) => (prev ? `${prev} ${finalText}` : finalText).trim());
       });
     }
+  }
+
+  // 點選型號 → 插入到輸入文字（自動補空格）
+  function insertModel(model: string) {
+    setRawText((prev) => {
+      const base = prev.trimEnd();
+      return base ? `${base} ${model} ` : `${model} `;
+    });
   }
 
   function resetResult() {
@@ -312,6 +329,29 @@ export default function CrmApp() {
           placeholder="語音或文字輸入服務內容…"
           onChange={(e) => setRawText(e.target.value)}
         />
+
+        <details className="model-pick">
+          <summary>型號快選（點一下插入）</summary>
+          <div className="model-groups">
+            {MODEL_GROUPS.map((g) => (
+              <div className="model-group" key={g.label}>
+                <span className="model-group-label">{g.label}</span>
+                <div className="chips">
+                  {g.items.map((item) => (
+                    <button
+                      key={item}
+                      type="button"
+                      className="chip"
+                      onClick={() => insertModel(item)}
+                    >
+                      {item}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </details>
 
         <button
           className="btn btn-primary btn-block"
